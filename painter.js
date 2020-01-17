@@ -42,7 +42,7 @@ Component({
       type: Object,
       observer: function (newVal, oldVal) {
         if (!this.isEmpty(newVal)) {
-          this.initDancePalette(newVal);
+          this.initDancePalette(JSON.parse(JSON.stringify(newVal)));
         }
       },
     },
@@ -270,7 +270,7 @@ Component({
       }
       if (newVal && newVal.url && doView.url && newVal.url !== doView.url) {
         downloader.download(newVal.url, this.properties.LRU).then((path) => {
-          if (newVal.url.startsWith('https')) {
+          if (newVal.url.startsWith('https') && !newVal.url.startsWith('https://store/')) {
             doView.originUrl = newVal.url
           }
           doView.url = path;
@@ -309,7 +309,7 @@ Component({
         pen.paint((callbackInfo) => {
           callback && callback(callbackInfo);
           this.triggerEvent('viewUpdate', {
-            view: this.touchedView
+            view: this.touchedView && JSON.parse(JSON.stringify(this.touchedView))
           });
         }, true, this.movingCache);
       } else {
@@ -320,7 +320,7 @@ Component({
         pen.paint((callbackInfo) => {
           callback && callback(callbackInfo);
           this.triggerEvent('viewUpdate', {
-            view: this.touchedView
+            view: this.touchedView && JSON.parse(JSON.stringify(this.touchedView))
           });
         })
       }
@@ -426,7 +426,7 @@ Component({
           this.touchedView = touchAble[i].view
           this.findedIndex = touchAble[i].index
           this.triggerEvent('viewClicked', {
-            view: this.touchedView
+            view: this.touchedView && JSON.parse(JSON.stringify(this.touchedView))
           })
         }
       }
@@ -435,7 +435,7 @@ Component({
         this.frontContext.draw();
         if (isDelete) {
           this.triggerEvent('touchEnd', {
-            view: this.currentPalette.views[deleteIndex],
+            view: this.currentPalette.views[deleteIndex] && JSON.parse(JSON.stringify(this.currentPalette.views[deleteIndex])),
             index: deleteIndex,
             type: 'delete'
           })
@@ -523,7 +523,7 @@ Component({
         !this.isScale && this.onClick(e)
       } else if (this.touchedView && !this.isEmpty(this.touchedView)) {
         this.triggerEvent('touchEnd', {
-          view: this.touchedView,
+          view: this.touchedView && JSON.parse(JSON.stringify(this.touchedView))
         })
       }
       this.hasMove = false
@@ -709,7 +709,9 @@ Component({
               preCount++;
               /* eslint-disable no-loop-func */
               downloader.download(view.url, this.properties.LRU).then((path) => {
-                view.originUrl = view.url;
+                if (view.url.startsWith('https') && !view.url.startsWith('https://store/')) {
+                  view.originUrl = view.url;
+                }
                 view.url = path;
                 wx.getImageInfo({
                   src: path,
